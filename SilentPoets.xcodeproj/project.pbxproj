@@ -10,9 +10,22 @@
 		2B6127C32CBD17F80051B948 /* SilentPoets.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SilentPoets.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2B78983C2CBEAE41003BE51B /* Exceptions for "SilentPoets" folder in "SilentPoets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2B6127C22CBD17F80051B948 /* SilentPoets */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2B6127C52CBD17F80051B948 /* SilentPoets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2B78983C2CBEAE41003BE51B /* Exceptions for "SilentPoets" folder in "SilentPoets" target */,
+			);
 			path = SilentPoets;
 			sourceTree = "<group>";
 		};
@@ -255,6 +268,7 @@
 				DEVELOPMENT_TEAM = TK2K39AGKU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SilentPoets/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -286,6 +300,7 @@
 				DEVELOPMENT_TEAM = TK2K39AGKU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SilentPoets/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.books";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

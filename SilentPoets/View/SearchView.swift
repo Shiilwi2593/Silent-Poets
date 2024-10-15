@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct SearchView: View {
+    @Binding var isTabBarShowing: Bool
+
     var body: some View {
         Text("Search")
     }
 }
 
 #Preview {
-    SearchView()
+    SearchView(isTabBarShowing: .constant(true))
 }

@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct BookShelfView: View {
+    @Binding var isTabBarShowing: Bool
+
     var body: some View {
         Text("BookShelf")
     }
 }
 
 #Preview {
-    BookShelfView()
+    BookShelfView(isTabBarShowing: .constant(true))
 }

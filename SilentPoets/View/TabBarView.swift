@@ -8,27 +8,37 @@
 import SwiftUI
 
 struct TabBarView: View {
+    @Binding var selectionIndex: Int
+    @Binding var isTabBarShowing: Bool
+    
+    let tabbarImage: [String] = ["tray.full.fill", "magnifyingglass", "books.vertical.fill"]
+    let tabbarTitle: [String] = ["Books", "Search", "Bookshelf"]
+    
     var body: some View {
-        TabView{
-            BookListView()
-                .tabItem {
-                    Image(systemName: "tray.full.fill")
-                    Text("Books")
+
+        HStack{
+            ForEach(0..<3){ index in
+                Button {
+                    selectionIndex = index
+                } label: {
+                    Spacer()
+                    VStack{
+                        Image(systemName: tabbarImage[index])
+                            .font(.system(size: 20))
+                            .frame(width: 20,height: 20)
+                            .foregroundColor(selectionIndex == index ? Color.black : .black.opacity(0.7))
+                            .scaledToFit()
+                        Text (tabbarTitle[index])
+                            .padding(.top,2)
+                            .font(.system(size: 12))
+                            .foregroundColor(selectionIndex == index ? Color.black : .black.opacity(0.7))
+                    }
+                    Spacer()
                 }
-            
-            SearchView()
-                .tabItem {
-                    Image(systemName: "magnifyingglass")
-                    Text("Search")
-                }
-            
-            BookShelfView()
-                .tabItem {
-                    Image(systemName: "books.vertical.fill")
-                    Text("Bookshelf")
-                }
+                
+                
+            }
         }
-            
     }
 }
 //

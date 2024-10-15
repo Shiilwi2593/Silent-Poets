@@ -36,55 +36,55 @@ struct ContentView: View {
         progress = UserDefaults.standard.double(forKey: "readingProgress")
     }
 }
-
-struct WebView: UIViewRepresentable {
-    let url: URL
-    @Binding var progress: Double
-    
-    func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
-        webView.navigationDelegate = context.coordinator
-        webView.load(URLRequest(url: url))
-        
-        // Inject JavaScript to calculate scroll progress
-        let script = WKUserScript(source: """
-            function calculateScrollProgress() {
-                let scrollPosition = window.pageYOffset;
-                let totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-                let progress = (scrollPosition / totalHeight) * 100;
-                window.webkit.messageHandlers.scrollHandler.postMessage(progress);
-            }
-            window.addEventListener('scroll', calculateScrollProgress);
-            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        
-        webView.configuration.userContentController.addUserScript(script)
-        webView.configuration.userContentController.add(context.coordinator, name: "scrollHandler")
-        
-        return webView
-    }
-    
-    func updateUIView(_ uiView: WKWebView, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-        var parent: WebView
-        
-        init(_ parent: WebView) {
-            self.parent = parent
-        }
-        
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            if message.name == "scrollHandler", let progress = message.body as? Double {
-                DispatchQueue.main.async {
-                    self.parent.progress = min(max(progress, 0), 100)
-                }
-            }
-        }
-    }
-}
+//
+//struct WebView: UIViewRepresentable {
+//    let url: URL
+//    @Binding var progress: Double
+//    
+//    func makeUIView(context: Context) -> WKWebView {
+//        let webView = WKWebView()
+//        webView.navigationDelegate = context.coordinator
+//        webView.load(URLRequest(url: url))
+//        
+//        // Inject JavaScript to calculate scroll progress
+//        let script = WKUserScript(source: """
+//            function calculateScrollProgress() {
+//                let scrollPosition = window.pageYOffset;
+//                let totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+//                let progress = (scrollPosition / totalHeight) * 100;
+//                window.webkit.messageHandlers.scrollHandler.postMessage(progress);
+//            }
+//            window.addEventListener('scroll', calculateScrollProgress);
+//            """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+//        
+//        webView.configuration.userContentController.addUserScript(script)
+//        webView.configuration.userContentController.add(context.coordinator, name: "scrollHandler")
+//        
+//        return webView
+//    }
+//    
+//    func updateUIView(_ uiView: WKWebView, context: Context) {}
+//    
+//    func makeCoordinator() -> Coordinator {
+//        Coordinator(self)
+//    }
+//    
+//    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+//        var parent: WebView
+//        
+//        init(_ parent: WebView) {
+//            self.parent = parent
+//        }
+//        
+//        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+//            if message.name == "scrollHandler", let progress = message.body as? Double {
+//                DispatchQueue.main.async {
+//                    self.parent.progress = min(max(progress, 0), 100)
+//                }
+//            }
+//        }
+//    }
+//}
 
 #Preview {
     ContentView()
