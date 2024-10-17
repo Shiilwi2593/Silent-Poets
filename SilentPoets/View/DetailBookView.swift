@@ -4,29 +4,36 @@
 //
 //  Created by Trịnh Kiết Tường on 15/10/24.
 //
-
 import SwiftUI
-
+import SwiftData
 
 struct DetailBookView: View {
+    
+    @Environment(\.modelContext) private var context
+    @Query var favBooks: [FavorBook]
+    @Query var trackingBooks: [TrackingBook]
     
     var book: Book
     @State private var isSaved: Bool = false
     @Binding var isTabBarShowing: Bool
-
+    @State private var isFavorited: Bool = false
+    @State private var isAdded: Bool = false
+    @State private var isRemoved: Bool = false
+    @State private var isTrack: Bool = false
+    @State private var isTracking: Bool = false
     
     var body: some View {
-        let url = URL(string: book.formats.imageJPEG!)
+        let url = URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")
         
         ZStack {
             Color.white
-            ScrollView{
-                VStack{
+            ScrollView {
+                VStack {
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 120, height: 140)
+                            .frame(width: 140, height: 160)
                             .shadow(radius: 10, x: 0, y: 10)
                     } placeholder: {
                         ProgressView()
@@ -47,7 +54,7 @@ struct DetailBookView: View {
                     
                     StatsView(book: book)
                     
-                    VStack(alignment: .leading){
+                    VStack(alignment: .leading) {
                         if !book.subjects.isEmpty {
                             Text("Subjects:")
                                 .font(.headline)
@@ -62,54 +69,135 @@ struct DetailBookView: View {
                             }
                         }
                     }
-                    NavigationLink(destination: BookReadingView(urlString: book.formats.textHTML!)) {
-                        HStack {
-                            Image(systemName: "book.fill")
-                                .foregroundStyle(.white)
-                            Text("Start reading")
-                                .foregroundStyle(.white)
-                                .font(.subheadline)
+                    
+                    HStack {
+                        // Button "Start reading"
+                        NavigationLink(destination: BookReadingView(urlString: book.formats.textHTML ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) {
+                            HStack {
+                                Image(systemName: "book.fill")
+                                    .foregroundStyle(.white)
+                                Text("Start reading")
+                                    .foregroundStyle(.white)
+                                    .font(.subheadline)
+                            }
+                            .frame(width: 160, height: 50)
+                            .background(Color.blue)
+                            .cornerRadius(20)
+                            .padding(.top, 20)
                         }
-                        .frame(width: 280, height: 50)
-                        .background(Color.blue)
-                        .cornerRadius(20)
-                        .padding(.top, 20)
+                        
+                        Button(action: {
+                            if !isTracking{
+                                print("Added to tracking read list")
+                                let trackingBook = TrackingBook(bookId: book.id, createAt: .now)
+                                context.insert(trackingBook)
+                                isTracking = true
+                                print(trackingBooks)
+                            }
+                           
+                        }) {
+                            HStack {
+                                Image(systemName: "eyes.inverse")
+                                    .foregroundStyle(.white)
+                                Text("Track reading")
+                                    .foregroundStyle(.white)
+                                    .font(.subheadline)
+                            }
+                            .frame(width: 160, height: 50)
+                            .background(Color.green)
+                            .cornerRadius(20)
+                            .padding(.top, 20)
+                            .opacity(isTracking ? 0.7 : 1)
+                            .disabled(isTracking)
+                        }
                     }
-                    
-                    
-                    
                     
                     Spacer()
                 }
             }
-            .onAppear(){
-                isTabBarShowing = false
+            .sheet(isPresented: $isTrack, onDismiss: {
+                isTrack = false
+            }, content: {
+                SheetAlert(image: "eye", imageForeground: .green, title: "You're tracking this book now")
+                    .presentationDetents([.medium])
+            })
+            .sheet(isPresented: $isAdded, onDismiss: {
+                isAdded = false
+            }) {
+                SheetAlert(image: "tray.and.arrow.down.fill", imageForeground: .green, title: "Added to Favorite List")
+                    .presentationDetents([.medium])
             }
             
-        }
-        .navigationTitle("\(book.title)")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar{
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isSaved.toggle()
-                    }                } label: {
-                        withAnimation {
-                            Image(systemName: "bookmark.fill")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 20, height: 20) 
-                                .foregroundStyle(isSaved ? .yellow : .black.opacity(0.6))
-                                .scaleEffect(isSaved ? 1.3 : 1.0)
-                            
-                        }
-                    }
+            .sheet(isPresented: $isRemoved, onDismiss: {
+                isRemoved = false
+            }) {
+                SheetAlert(image: "tray.and.arrow.up.fill", imageForeground: .red, title: "Removed from Favorite List")
+                    .presentationDetents([.medium])
+                
+            }
+            .onAppear() {
+                isTabBarShowing = false
+                let bookIds = favBooks.map { String($0.bookId) }
+                isFavorited = bookIds.contains(String(book.id))
+                
+                let trackingBookIds = trackingBooks.map { String($0.bookId) }
+                isTracking = trackingBookIds.contains(String(book.id))
                 
             }
         }
+        .navigationTitle("\(book.title)")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        if isFavorited {
+                            removeBookFromFavor()
+                        } else {
+                            addBookIntoFavor()
+                        }
+                    }
+                } label: {
+                    Image(systemName: "bookmark.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 20, height: 20)
+                        .foregroundStyle(isFavorited ? .yellow : .black.opacity(0.6))
+                        .scaleEffect(isFavorited ? 1.3 : 1.0)
+                }
+            }
+        }
+    }
+    
+    private func addBookIntoFavor() {
+        let favorBook = FavorBook(bookId: book.id)
+        context.insert(favorBook)
+        do {
+            try context.save()
+            isFavorited = true
+            isAdded = true
+        } catch {
+            print("Failed to save context after inserting FavorBook: \(error)")
+        }
+    }
+    
+    private func removeBookFromFavor() {
+        if let favorBookToDelete = favBooks.first(where: { $0.bookId == book.id }) {
+            context.delete(favorBookToDelete)
+            
+            do {
+                try context.save()
+                isFavorited = false
+                isRemoved = true
+            } catch {
+                print("Failed to save context after deleting FavorBook: \(error)")
+            }
+        } else {
+            print("Book with ID \(book.id) not found in favorites")
+        }
     }
 }
+
 
 
 

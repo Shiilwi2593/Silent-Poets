@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import SwiftData
 
-struct Book: Codable {
+struct Book: Identifiable, Codable {
     let id: Int
     let title: String
     let authors: [Author]
-    let translators: [String?] // Assuming translators are an array of optional strings
+    let translators: [String?]
     let subjects, bookshelves, languages: [String]
     let copyright: Bool
     let mediaType: String

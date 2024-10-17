@@ -6,36 +6,36 @@
 //
 
 
-
-import SwiftUI
-import WebKit
-
-struct ContentView: View {
-    @State private var progress: Double = 0
-    let url = URL(string: "https://www.gutenberg.org/cache/epub/2000/pg2000-images.html")!
-    
-    var body: some View {
-        VStack {
-            WebView(url: url, progress: $progress)
-            ProgressView(value: progress, total: 100)
-            Text("Progress: \(Int(progress))%")
-        }
-        .onDisappear {
-            saveProgress()
-        }
-        .onAppear {
-            loadProgress()
-        }
-    }
-    
-    private func saveProgress() {
-        UserDefaults.standard.set(progress, forKey: "readingProgress")
-    }
-    
-    private func loadProgress() {
-        progress = UserDefaults.standard.double(forKey: "readingProgress")
-    }
-}
+//
+//import SwiftUI
+//import WebKit
+//
+//struct ContentView: View {
+//    @State private var progress: Double = 0
+//    let url = URL(string: "https://www.gutenberg.org/cache/epub/2000/pg2000-images.html")!
+//    
+//    var body: some View {
+//        VStack {
+//            WebView(url: url, progress: $progress)
+//            ProgressView(value: progress, total: 100)
+//            Text("Progress: \(Int(progress))%")
+//        }
+//        .onDisappear {
+//            saveProgress()
+//        }
+//        .onAppear {
+//            loadProgress()
+//        }
+//    }
+//    
+//    private func saveProgress() {
+//        UserDefaults.standard.set(progress, forKey: "readingProgress")
+//    }
+//    
+//    private func loadProgress() {
+//        progress = UserDefaults.standard.double(forKey: "readingProgress")
+//    }
+//}
 //
 //struct WebView: UIViewRepresentable {
 //    let url: URL
@@ -85,7 +85,7 @@ struct ContentView: View {
 //        }
 //    }
 //}
-
-#Preview {
-    ContentView()
-}
+//
+//#Preview {
+//    ContentView()
+//}

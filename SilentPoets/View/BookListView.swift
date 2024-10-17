@@ -61,7 +61,7 @@ struct BookListCell: View {
         NavigationLink(destination: DetailBookView(book: book, isTabBarShowing: $isTabBarShowing)) {
             VStack {
                 HStack {
-                    AsyncImage(url: URL(string: book.formats.imageJPEG!)) { image in
+                    AsyncImage(url: URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
                         image
                             .resizable()
                             .scaledToFit()
@@ -70,18 +70,22 @@ struct BookListCell: View {
                             .shadow(radius: 10, x: -10, y: 20)
                             .offset(x: -10)
                     } placeholder: {
-                        ProgressView()
+                         ProgressView()
                     }
                     
+                    
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(book.title)
+                        let titleTrimmed = book.title.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "\u{200B}\u{FEFF}"))
+                        
+                        Text(titleTrimmed)
                             .font(.system(size: 16, weight: .semibold))
                             .padding(.top, 12)
                             .lineLimit(2)
                             .foregroundStyle(.black)
                         
+                        
                         if let author = book.authors.first {
-                            Text(author.name)
+                            Text("by \(author.name)")
                                 .font(.footnote)
                                 .foregroundStyle(Color(.systemGray))
                         }

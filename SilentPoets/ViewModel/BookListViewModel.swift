@@ -42,11 +42,9 @@ class BookListViewModel: ObservableObject {
                 }
                 
                 do {
-                    // Parsing the JSON response
                     if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let results = json["results"] as? [[String: Any]] {
                         
-                        // Creating Book instances from results
                         for bookDict in results {
                             if let book = self.createBook(from: bookDict) {
                                 DispatchQueue.main.async {

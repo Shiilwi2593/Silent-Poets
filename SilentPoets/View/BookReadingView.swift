@@ -11,26 +11,25 @@ import WebKit
 struct BookReadingView: View {
     var urlString: String
     @State private var progress: Double = 0
-
+    
     
     var body: some View {
         let url = URL(string: "\(urlString)")!
-        NavigationStack{
-            VStack {
-                WebView(url: url, progress: $progress)
-                ProgressView(value: progress, total: 100)
-                Text("Progress: \(Int(progress))%")
-            }
-            .onDisappear {
-                saveProgress()
-            }
-            .onAppear {
-                loadProgress()
-                print(urlString)
-
-            }
+        VStack {
+            WebView(url: url, progress: $progress)
+            //                ProgressView(value: progress, total: 100)
+            //                Text("Progress: \(Int(progress))%")
+        }
+        .onDisappear {
+            saveProgress()
+        }
+        .onAppear {
+            loadProgress()
+            print(urlString)
             
         }
+        
+        
         
         
         
@@ -51,6 +50,13 @@ struct WebView: UIViewRepresentable {
     
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
+        
+        // Enable pinch to zoom
+        webView.scrollView.minimumZoomScale = 1.0
+        webView.scrollView.maximumZoomScale = 4.0
+        webView.scrollView.delegate = context.coordinator
+        
         webView.load(URLRequest(url: url))
         
         // Inject JavaScript to calculate scroll progress
@@ -65,16 +71,34 @@ struct WebView: UIViewRepresentable {
             """, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         
         webView.configuration.userContentController.addUserScript(script)
+        webView.configuration.userContentController.add(context.coordinator, name: "scrollHandler")
         
         return webView
     }
     
     func updateUIView(_ uiView: WKWebView, context: Context) {}
     
-   
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
     
-   
+    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler, UIScrollViewDelegate {
+        var parent: WebView
+        
+        init(_ parent: WebView) {
+            self.parent = parent
+        }
+        
+        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+            if message.name == "scrollHandler", let progress = message.body as? Double {
+                DispatchQueue.main.async {
+                    self.parent.progress = min(max(progress, 0), 100)
+                }
+            }
+        }
+    }
 }
+
 
 #Preview {
     BookReadingView(urlString: "https://www.gutenberg.org/cache/epub/2000/pg2000-images.html")
