@@ -16,18 +16,16 @@ class BookShelfViewModel: ObservableObject{
     var onFavBookAdded: (() -> Void)?
     var onTrackBookAdded: (() -> Void)?
     
-    @Published var hasFetched = false
-    
-    
-    
-    
+    @Published var hasFetchedFav: Bool = false
+    @Published var hasFetchedTrack: Bool = false
+
+
     func fetchFavouriteBooks(favIdString: String){
         guard let url = URL(string: "https://gutendex.com/books/?ids=\(favIdString)") else {
             print("Invalid URL")
             return
         }
-        
-        
+            
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 100
@@ -62,7 +60,7 @@ class BookShelfViewModel: ObservableObject{
                         }
                     }
                     DispatchQueue.main.async {
-                        self.hasFetched = true
+                        self.hasFetchedFav = true
                         self.onFavBookAdded?()
                     }
                     
@@ -115,7 +113,7 @@ class BookShelfViewModel: ObservableObject{
                         }
                     }
                     DispatchQueue.main.async {
-                        self.hasFetched = true
+                        self.hasFetchedTrack = true
                         self.onTrackBookAdded?()
                     }
                     

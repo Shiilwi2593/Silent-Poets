@@ -29,128 +29,91 @@ struct BookShelfView: View {
     ]
     
     var body: some View {
-        VStack {
-            List {
-                Section(header: Text("Favourite Books")
-                    .offset(x: -20)
-                    .fontWeight(.semibold)) {
-                        if showLoadingView {
-                            HStack {
-                                Spacer()
-                                ProgressView("Loading favorite books...")
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                Spacer()
-                            }
-                            .frame(height: 240)
-                        } else if bookShelfVM.hasFetched {
-                            ScrollView(.horizontal) {
-                                LazyHGrid(rows: rows) {
-                                    ForEach(bookShelfVM.favBooks, id: \.id) { book in
-                                        VStack(alignment: .leading) {
-                                            AsyncImage(url: URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
-                                                image
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 120, height: 160)
-                                                    .clipped()
-                                                    .shadow(radius: 10, x: -5, y: 5)
-                                            } placeholder: {
-                                                ProgressView()
-                                            }
+        NavigationView{
+            VStack {
+                List {
+                    Section(header: Text("Favourite Books")
+                        .offset(x: -20)
+                        .fontWeight(.semibold)) {
+                            if showLoadingView {
+                                HStack {
+                                    Spacer()
+                                    ProgressView("Loading favorite books...")
+                                        .font(.subheadline)
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                    Spacer()
+                                }
+                                .frame(height: 240)
+                            } else {
+                                ScrollView(.horizontal) {
+                                    LazyHGrid(rows: rows) {
+                                        ForEach(bookShelfVM.favBooks, id: \.id) { book in
+                                            FavBookCell(book: book)
                                             
-                                            Text(book.title)
-                                                .font(.subheadline)
-                                                .fontWeight(.semibold)
-                                                .lineLimit(2)
-                                            
-                                            Text("by \(book.authors.first?.name ?? "Unknown Author")")
-                                                .font(.footnote)
-                                                .fontWeight(.semibold)
-                                                .lineLimit(2)
-                                                .foregroundStyle(.gray)
+                                            Divider()
                                         }
-                                        .frame(width: 130)
-                                        .padding()
-                                        
-                                        Divider()
                                     }
                                 }
+                                
+                                .onAppear(){
+                                    showLoadingView = false
+                                }
+                                .frame(height: 240)
                             }
-                            .frame(height: 240)
                         }
-                    }
-                
-                Section(header: Text("Reading list")
-                    .offset(x: -20)
-                    .fontWeight(.semibold)){
-                        if showLoadingView {
-                            HStack {
-                                Spacer()
-                                ProgressView("Loading reading list...")
-                                    .progressViewStyle(CircularProgressViewStyle())
-                                Spacer()
-                            }
-                            .frame(height: 240)
-                        } else if bookShelfVM.hasFetched{
-                            ScrollView{
-                                LazyVStack{
-                                    ForEach(bookShelfVM.trackBooks, id: \.id) { book in
-                                            HStack{
-                                                AsyncImage(url: URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
-                                                    image
-                                                        .resizable()
-                                                        .scaledToFit()
-                                                        .frame(width: 90, height: 130)
-                                                        .clipped()
-                                                        .shadow(radius: 10, x: 0, y: 10)
-                                                } placeholder: {
-                                                    ProgressView()
-                                                }
-                                                
-                                                VStack(alignment: .leading){
-                                                    Text(book.title)
-                                                        .font(.system(size: 17))
-                                                        .fontWeight(.semibold)
-                                                        .lineLimit(2)
-                                                    Text("by \(book.authors.first?.name ?? "Unknown Author")")
-                                                        .font(.footnote)
-                                                        .fontWeight(.semibold)
-                                                        .foregroundStyle(.gray)
-                                                    
-                                                    VStack(alignment: .trailing){
-                                                        ProgressView(value: 50, total: 100)
-                                                        Text("50 of 100%")
-                                                            .font(.system(size: 10))
-                                                            .font(.footnote)
-                                                            .foregroundStyle(.gray)
-                                                            .fontWeight(.semibold)
-                                                    }
-                                                    
-                                                    
-                                                    Spacer()
-                                                }
-                                                .padding(.top, 12)
-                                                .padding(.leading, 6)
-                                                
-                                                Spacer()
-                                            }
-                                            .padding(.top, 12)
+                    
+                    Section(header: Text("Reading list")
+                        .offset(x: -20)
+                        .fontWeight(.semibold)){
+                            if showLoadingView {
+                                HStack {
+                                    Spacer()
+                                    ProgressView("Loading reading list...")
+                                        .font(.subheadline)
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                    Spacer()
+                                }
+                                .frame(height: 240)
+                            } else {
+                                ScrollView{
+                                    LazyVStack{
+                                        ForEach(bookShelfVM.trackBooks, id: \.id) { trackBook in
+                                            let bookId = trackBook.id
+                                            let trackingBook = trackingBooks.first(where: { $0.bookId == bookId})
+                                            TrackingBookCell(trackBook: trackBook, trackingBook: trackingBook!)
                                             
                                             Divider()
                                                 .padding(.top, 12)
                                         }
                                     }
                                 }
+                                .onAppear(){
+                                    showLoadingView = false
+                                }
+                                
+                                
+                            }
                             
-                          
+                            
                         }
-                        
-                        
-                    }
+                      
+                }
+               
             }
             .navigationTitle("BookShelf")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             .onAppear {
+                if bookShelfVM.hasFetchedFav {
+                    showLoadingView = true
+                    bookShelfVM.hasFetchedFav = false
+                }
+                if bookShelfVM.hasFetchedTrack{
+                    showLoadingView = true
+                    bookShelfVM.hasFetchedTrack = false
+                }
+                
+                print(favorBooks)
+                
                 arrFavorBooksId.removeAll()
                 arrTrackingBooksId.removeAll()
                 
@@ -166,170 +129,104 @@ struct BookShelfView: View {
                 bookShelfVM.fetchFavouriteBooks(favIdString: favIdString)
                 bookShelfVM.fetchTrackingBooks(trackingIdString: trackingIdString)
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            }
+            .onReceive(bookShelfVM.$hasFetchedFav) { hasFetched in
+                if hasFetched {
                     showLoadingView = false
                 }
             }
+            .onReceive(bookShelfVM.$hasFetchedTrack) { hasFetched in
+                if hasFetched {
+                    showLoadingView = false
+                }
+            }
+
         }
         
     }
-    
 }
 
 
+#Preview {
+    BookShelfView(isTabBarShowing: .constant(true))
+}
 
-//
-//                    Section(header: Text("Reading Books")
-//                        .font(.subheadline)
-//                        .offset(x: -20)
-//                        .fontWeight(.semibold)) {
-//                        LazyVStack{
-//                            ForEach(favouriteBooks){book in
-//                                VStack{
-//                                    HStack{
-//                                        AsyncImage(url: URL(string: book.image)) { image in
-//                                            image
-//                                                .resizable()
-//                                                .scaledToFit()
-//                                                .frame(width: 90, height: 130)
-//                                                .clipped()
-//                                                .shadow(radius: 10, x: 0, y: 10)
-//                                        } placeholder: {
-//                                            ProgressView()
-//                                        }
-//
-//                                        VStack(alignment: .leading){
-//                                            Text(book.title)
-//                                                .font(.system(size: 19))
-//                                                .fontWeight(.bold)
-//                                                .lineLimit(2)
-//                                            Text(book.author)
-//                                                .font(.subheadline)
-//                                                .fontWeight(.semibold)
-//                                                .foregroundStyle(.gray)
-//                                            VStack(alignment: .trailing){
-//                                                ProgressView(value: 50, total: 100)
-//                                                Text("50% of 100%")
-//                                                    .font(.footnote)
-//                                                    .foregroundStyle(.gray)
-//                                                    .fontWeight(.semibold)
-//                                            }
-//
-//
-//                                            Spacer()
-//                                        }
-//                                        .padding(.top, 12)
-//                                        .padding(.leading, 6)
-//
-//                                        Spacer()
-//                                    }
-//                                    .padding(.top, 10)
-//
-//                                    Divider()
-//                                        .padding(.top, 12)
-//                                }
-//
-//                            }
-//                        }
-//                    }
-//
+struct FavBookCell: View {
+    let book: Book
+    
+    var body: some View {
+        VStack(alignment: .leading) {
+            AsyncImage(url: URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120, height: 160)
+                    .clipped()
+                    .shadow(radius: 10, x: -5, y: 5)
+            } placeholder: {
+                ProgressView()
+            }
+            
+            Text(book.title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .lineLimit(2)
+            
+            Text("by \(book.authors.first?.name ?? "Unknown Author")")
+                .font(.footnote)
+                .fontWeight(.semibold)
+                .lineLimit(2)
+                .foregroundStyle(.gray)
+        }
+        .frame(width: 130)
+        .padding()
+    }
+}
 
-
-//    #Preview {
-//        BookShelfView(isTabBarShowing: .constant(true))
-//    }
-
-//    var favouriteBooks: [FavouriteBook] = [
-//        FavouriteBook(
-//            title: "Romeo and Juliet",
-//            image: "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-//            author: "by Shakespeare, William"
-//        ),
-//        FavouriteBook(
-//            title: "Romeo and Juliet",
-//            image: "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-//            author: "by Shakespeare, William"
-//        ),
-//        FavouriteBook(
-//            title: "Romeo and Juliet",
-//            image: "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-//            author: "by Shakespeare, William"
-//        ),
-//        FavouriteBook(
-//            title: "Romeo and Juliet",
-//            image: "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-//            author: "by Shakespeare, William"
-//        ),
-//        FavouriteBook(
-//            title: "Romeo and Juliet",
-//            image: "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-//            author: "by Shakespeare, William"
-//        ),
-//        FavouriteBook(
-//            title: "Romeo and Juliet",
-//            image: "https://www.gutenberg.org/cache/epub/145/pg145.cover.medium.jpg",
-//            author: "by Shakespeare, William"
-//        ),
-//    ]
-//
-//struct FavouriteBook: Identifiable {
-//    var id = UUID()
-//    var title: String
-//    var image: String
-//    var author: String
-//}
-
-
-//                            Section(header: Text("Reading Books")
-//                                .font(.subheadline)
-//                                .offset(x: -20)
-//                                .fontWeight(.semibold)) {
-//                                LazyVStack{
-//                                    ForEach(favouriteBooks){book in
-//                                        VStack{
-//                                            HStack{
-//                                                AsyncImage(url: URL(string: book.image)) { image in
-//                                                    image
-//                                                        .resizable()
-//                                                        .scaledToFit()
-//                                                        .frame(width: 90, height: 130)
-//                                                        .clipped()
-//                                                        .shadow(radius: 10, x: 0, y: 10)
-//                                                } placeholder: {
-//                                                    ProgressView()
-//                                                }
-//
-//                                                VStack(alignment: .leading){
-//                                                    Text(book.title)
-//                                                        .font(.system(size: 19))
-//                                                        .fontWeight(.bold)
-//                                                        .lineLimit(2)
-//                                                    Text(book.author)
-//                                                        .font(.subheadline)
-//                                                        .fontWeight(.semibold)
-//                                                        .foregroundStyle(.gray)
-//                                                    VStack(alignment: .trailing){
-//                                                        ProgressView(value: 50, total: 100)
-//                                                        Text("50% of 100%")
-//                                                            .font(.footnote)
-//                                                            .foregroundStyle(.gray)
-//                                                            .fontWeight(.semibold)
-//                                                    }
-//
-//
-//                                                    Spacer()
-//                                                }
-//                                                .padding(.top, 12)
-//                                                .padding(.leading, 6)
-//
-//                                                Spacer()
-//                                            }
-//                                            .padding(.top, 10)
-//
-//                                            Divider()
-//                                                .padding(.top, 12)
-//                                        }
-//
-//                                    }
-//                                }
-//                            }
+struct TrackingBookCell: View {
+    let trackBook: Book
+    let trackingBook: TrackingBook
+    
+    var body: some View {
+        HStack{
+            AsyncImage(url: URL(string: trackBook.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 90, height: 130)
+                    .clipped()
+                    .shadow(radius: 10, x: 0, y: 10)
+            } placeholder: {
+                ProgressView()
+            }
+            
+            VStack(alignment: .leading){
+                Text(trackBook.title)
+                    .font(.system(size: 17))
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                Text("by \(trackBook.authors.first?.name ?? "Unknown Author")")
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.gray)
+                
+                VStack(alignment: .trailing){
+                    ProgressView(value: trackingBook.progress, total: 100)
+                    Text("\(String(describing: trackingBook.progress)) of 100%")
+                        .font(.system(size: 10))
+                        .font(.footnote)
+                        .foregroundStyle(.gray)
+                        .fontWeight(.semibold)
+                }
+                
+                
+                Spacer()
+            }
+            .padding(.top, 12)
+            .padding(.leading, 6)
+            
+            Spacer()
+        }
+        .padding(.top, 12)
+    }
+}
