@@ -1,18 +1,17 @@
-//
-//  ContentView.swift
-//  SilentPoets
-//
-//  Created by Trịnh Kiết Tường on 14/10/24.
-//
-
-
+////
+////  ContentView.swift
+////  SilentPoets
+////
+////  Created by Trịnh Kiết Tường on 14/10/24.
+////
 //
 //import SwiftUI
 //import WebKit
 //
 //struct ContentView: View {
 //    @State private var progress: Double = 0
-//    let url = URL(string: "https://www.gutenberg.org/cache/epub/2000/pg2000-images.html")!
+//    let url = URL(string: "https://www.gutenberg.org/ebooks/84.html.images
+//")!
 //    
 //    var body: some View {
 //        VStack {

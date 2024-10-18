@@ -17,7 +17,7 @@ struct BookListView: View {
     ]
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 ScrollView{
                     if bookListVM.books.count == 0{
@@ -109,6 +109,9 @@ struct BookListCell: View {
                 
                 Divider()
                     .padding([.leading, .trailing], 12)
+            }
+            .onAppear(){
+                isTabBarShowing = true
             }
         }
         

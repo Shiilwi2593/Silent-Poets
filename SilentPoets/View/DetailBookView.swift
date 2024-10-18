@@ -16,10 +16,14 @@ struct DetailBookView: View {
     var book: Book
     @State private var isSaved: Bool = false
     @Binding var isTabBarShowing: Bool
+    
     @State private var isFavorited: Bool = false
     @State private var isAdded: Bool = false
     @State private var isRemoved: Bool = false
-    @State private var isTrack: Bool = false
+    @State private var isTrackAlert: Bool = false
+    @State private var isRemoveTrackAlert: Bool = false
+    
+    
     @State private var isTracking: Bool = false
     
     var body: some View {
@@ -71,8 +75,7 @@ struct DetailBookView: View {
                     }
                     
                     HStack {
-                        // Button "Start reading"
-                        NavigationLink(destination: BookReadingView(urlString: book.formats.textHTML ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) {
+                        NavigationLink(destination: BookReadingView(isTabBarShowing: .constant(false), book: book/*,urlString: book.formats.textHTML ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922", isTabBarShowing: $isTabBarShowing*/)) {
                             HStack {
                                 Image(systemName: "book.fill")
                                     .foregroundStyle(.white)
@@ -87,40 +90,72 @@ struct DetailBookView: View {
                         }
                         
                         Button(action: {
-                            if !isTracking{
+                            if !isTracking {
                                 print("Added to tracking read list")
                                 let trackingBook = TrackingBook(bookId: book.id, createAt: .now)
                                 context.insert(trackingBook)
-                                isTracking = true
-                                print(trackingBooks)
+                                do {
+                                    try context.save()
+                                    isTracking = true
+                                    isTrackAlert = true
+                                } catch  {
+                                    print("Failed to add to tracking read list")
+                                }
+                            } else {
+                                print("Remove from tracking read list")
+                                if let trackingBookToRemove = trackingBooks.first(where: { $0.bookId == book.id }) {
+                                    context.delete(trackingBookToRemove)
+                                    do {
+                                        try context.save()
+                                        isTracking = false
+                                        isRemoveTrackAlert = true
+                                    } catch {
+                                        print("Failed to remove from tracking list")
+                                    }
+                                }
                             }
-                           
                         }) {
                             HStack {
-                                Image(systemName: "eyes.inverse")
-                                    .foregroundStyle(.white)
-                                Text("Track reading")
-                                    .foregroundStyle(.white)
-                                    .font(.subheadline)
+                                if !isTracking {
+                                    Image(systemName: "eyes.inverse")
+                                        .foregroundStyle(.white)
+                                    Text("Start tracking")
+                                        .foregroundStyle(.white)
+                                        .font(.subheadline)
+                                } else {
+                                    Image(systemName: "eye.slash.fill")
+                                        .foregroundStyle(.white)
+                                    Text("Stop tracking")
+                                        .foregroundStyle(.white)
+                                        .font(.subheadline)
+                                }
                             }
                             .frame(width: 160, height: 50)
-                            .background(Color.green)
+                            .background(isTracking ? Color.red : Color.green)
                             .cornerRadius(20)
                             .padding(.top, 20)
-                            .opacity(isTracking ? 0.7 : 1)
-                            .disabled(isTracking)
                         }
+
                     }
                     
                     Spacer()
                 }
             }
-            .sheet(isPresented: $isTrack, onDismiss: {
-                isTrack = false
+            .sheet(isPresented: $isTrackAlert, onDismiss: {
+                isTrackAlert = false
             }, content: {
                 SheetAlert(image: "eye", imageForeground: .green, title: "You're tracking this book now")
                     .presentationDetents([.medium])
             })
+            
+            .sheet(isPresented: $isRemoveTrackAlert, onDismiss: {
+                isRemoveTrackAlert = false
+            }, content: {
+                SheetAlert(image: "eye.slash.fill", imageForeground: .red, title: "Removed book from tracking list")
+                    .presentationDetents([.medium, .medium])
+            
+            })
+            
             .sheet(isPresented: $isAdded, onDismiss: {
                 isAdded = false
             }) {
@@ -142,9 +177,13 @@ struct DetailBookView: View {
                 
                 let trackingBookIds = trackingBooks.map { String($0.bookId) }
                 isTracking = trackingBookIds.contains(String(book.id))
-                
             }
+            .onDisappear(){
+                isTabBarShowing = true
+            }
+       
         }
+        .edgesIgnoringSafeArea(.bottom)
         .navigationTitle("\(book.title)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
