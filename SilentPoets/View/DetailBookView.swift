@@ -33,6 +33,7 @@ struct DetailBookView: View {
             Color.white
             ScrollView {
                 VStack {
+                    
                     AsyncImage(url: url) { image in
                         image
                             .resizable()
@@ -42,6 +43,7 @@ struct DetailBookView: View {
                     } placeholder: {
                         ProgressView()
                     }
+                    
                     
                     Text(book.title)
                         .font(.system(size: 20, weight: .semibold))
@@ -75,7 +77,7 @@ struct DetailBookView: View {
                     }
                     
                     HStack {
-                        NavigationLink(destination: BookReadingView(isTabBarShowing: .constant(false), book: book/*,urlString: book.formats.textHTML ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922", isTabBarShowing: $isTabBarShowing*/)) {
+                        NavigationLink(destination: BookReadingView(id: book.id, book: book, isTabBarShowing: $isTabBarShowing)) {
                             HStack {
                                 Image(systemName: "book.fill")
                                     .foregroundStyle(.white)
@@ -135,7 +137,7 @@ struct DetailBookView: View {
                             .cornerRadius(20)
                             .padding(.top, 20)
                         }
-
+                        
                     }
                     
                     Spacer()
@@ -153,7 +155,7 @@ struct DetailBookView: View {
             }, content: {
                 SheetAlert(image: "eye.slash.fill", imageForeground: .red, title: "Removed book from tracking list")
                     .presentationDetents([.medium, .medium])
-            
+                
             })
             
             .sheet(isPresented: $isAdded, onDismiss: {
@@ -178,10 +180,8 @@ struct DetailBookView: View {
                 let trackingBookIds = trackingBooks.map { String($0.bookId) }
                 isTracking = trackingBookIds.contains(String(book.id))
             }
-            .onDisappear(){
-                isTabBarShowing = true
-            }
-       
+           
+            
         }
         .edgesIgnoringSafeArea(.bottom)
         .navigationTitle("\(book.title)")

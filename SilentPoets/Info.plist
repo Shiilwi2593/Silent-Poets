@@ -2,26 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict/>
-    </array>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSExceptionDomains</key>
         <dict>
-            <key>gutenberg.org</key>
+            <key>gutenberg.org/</key>
             <dict>
                 <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
+                <false/>
                 <key>NSIncludesSubdomains</key>
                 <true/>
             </dict>
         </dict>
     </dict>
-    <key>WKAppBoundDomains</key>
-    <array>
-        <string>gutenberg.org</string>
-    </array>
 </dict>
 </plist>

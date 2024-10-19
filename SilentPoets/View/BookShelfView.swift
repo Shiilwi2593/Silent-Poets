@@ -248,7 +248,7 @@ struct TrackingBookCell: View {
                     
                     VStack(alignment: .trailing){
                         ProgressView(value: trackingBook.progress, total: 100)
-                        Text("\(String(describing: trackingBook.progress)) of 100%")
+                        Text(String(format: "%.1f of 100%%", trackingBook.progress))
                             .font(.system(size: 10))
                             .font(.footnote)
                             .foregroundStyle(.gray)
