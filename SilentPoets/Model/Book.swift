@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-struct Book: Identifiable, Codable {
+struct Book: Identifiable, Equatable, Codable {
     let id: Int
     let title: String
     let authors: [Author]
@@ -23,6 +23,10 @@ struct Book: Identifiable, Codable {
         let name: String
         let birthYear, deathYear: Int?
     }
+    
+    static func == (lhs: Book, rhs: Book) -> Bool {
+         return lhs.id == rhs.id
+     }
 
     struct Formats: Codable {
         let textHTML: String?

@@ -21,15 +21,10 @@ struct BookShelfView: View {
     //State
     @State private var arrFavorBooksId = [Int]()
     @State private var showLoadingView = true
-    
     @State private var arrTrackingBooksId = [Int]()
     
-    var rows: [GridItem] = [
-        GridItem(.flexible())
-    ]
-    
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             VStack {
                 List {
                     Section(header: Text("Favourite Books")
@@ -45,7 +40,7 @@ struct BookShelfView: View {
                                 }
                                 .frame(height: 240)
                             } else {
-                                if favorBooks.isEmpty{
+                                if favorBooks.isEmpty {
                                     HStack {
                                         Spacer()
                                         Text("You're not favoriting any books yet.")
@@ -55,86 +50,97 @@ struct BookShelfView: View {
                                     }
                                     .frame(height: 240)
                                 } else {
-                                    ScrollView(.horizontal) {
-                                        LazyHGrid(rows: rows) {
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 16) {
                                             ForEach(bookShelfVM.favBooks, id: \.id) { book in
                                                 FavBookCell(book: book, isTabBarShowing: $isTabBarShowing)
-                                                
-                                                Divider()
                                             }
                                         }
-                                    }
-                                    .onAppear(){
-                                        showLoadingView = false
+                                        .padding(.horizontal)
                                     }
                                     .frame(height: 240)
                                 }
-                                
-                                
                             }
                         }
                     
-                    Section(header: Text("Reading list")
+                    Section(header: Text("Reading Books")
                         .offset(x: -20)
-                        .fontWeight(.semibold)){
+                        .fontWeight(.semibold)) {
                             if showLoadingView {
                                 HStack {
                                     Spacer()
-                                    ProgressView("Loading reading list...")
+                                    ProgressView("Loading reading books...")
                                         .font(.subheadline)
                                         .progressViewStyle(CircularProgressViewStyle())
                                     Spacer()
                                 }
                                 .frame(height: 240)
                             } else {
-                                ScrollView{
-                                    LazyVStack{
-                                        if trackingBooks.isEmpty{
-                                            VStack(alignment: .center){
-                                                Spacer()
-                                                Text("You're not tracking any books yet.")
-                                                    .font(.subheadline)
-                                                    .foregroundStyle(.gray)
-                                                Spacer()
-                                                
-                                            }
-                                            .frame(height: 90)
+                                ScrollView {
+                                    LazyVStack {
+                                        let readingBooks = trackingBooks.filter { $0.progress < 100 }
+                                        if readingBooks.isEmpty {
+                                            Text("You're not currently reading any books.")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.gray)
+                                                .frame(height: 90)
                                         } else {
-                                            ForEach(bookShelfVM.trackBooks, id: \.id) { trackBook in
-                                                let bookId = trackBook.id
-                                                if let trackingBook = trackingBooks.first(where: { $0.bookId == bookId}) {
-                                                    TrackingBookCell(trackBook: trackBook, trackingBook: trackingBook, isTabBarShowing: $isTabBarShowing)
-                                                    
-                                                    Divider()
-                                                        .padding(.top, 12)
+                                            ForEach(readingBooks, id: \.bookId) { trackingBook in
+                                                if let book = bookShelfVM.trackBooks.first(where: { $0.id == trackingBook.bookId }) {
+                                                    TrackingBookCell(trackBook: book, trackingBook: trackingBook, isTabBarShowing: $isTabBarShowing)
+                                                    Divider().padding(.top, 12)
                                                 }
                                             }
-                                            
                                         }
                                     }
                                 }
-                                .onAppear(){
-                                    showLoadingView = false
-                                    isTabBarShowing = true
-                                }
-                                
-                                
                             }
-                            
-                            
                         }
                     
+                    Section(header: Text("Finished Books")
+                        .offset(x: -20)
+                        .fontWeight(.semibold)) {
+                            if showLoadingView {
+                                HStack {
+                                    Spacer()
+                                    ProgressView("Loading finished books...")
+                                        .font(.subheadline)
+                                        .progressViewStyle(CircularProgressViewStyle())
+                                    Spacer()
+                                }
+                                .frame(height: 240)
+                            } else {
+                                ScrollView {
+                                    LazyVStack {
+                                        let finishedBooks = trackingBooks.filter { $0.progress == 100 }
+                                        if finishedBooks.isEmpty {
+                                            Text("You haven't finished any books yet.")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.gray)
+                                                .frame(height: 90)
+                                        } else {
+                                            ForEach(finishedBooks, id: \.bookId) { trackingBook in
+                                                if let book = bookShelfVM.trackBooks.first(where: { $0.id == trackingBook.bookId }) {
+                                                    TrackingBookCell(trackBook: book, trackingBook: trackingBook, isTabBarShowing: $isTabBarShowing)
+                                                    Divider().padding(.top, 12)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                 }
-                
             }
             .navigationTitle("BookShelf")
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
+                isTabBarShowing = true
                 if bookShelfVM.hasFetchedFav {
                     showLoadingView = true
                     bookShelfVM.hasFetchedFav = false
                 }
-                if bookShelfVM.hasFetchedTrack{
+                if bookShelfVM.hasFetchedTrack {
                     showLoadingView = true
                     bookShelfVM.hasFetchedTrack = false
                 }
@@ -155,7 +161,6 @@ struct BookShelfView: View {
                 
                 bookShelfVM.fetchFavouriteBooks(favIdString: favIdString)
                 bookShelfVM.fetchTrackingBooks(trackingIdString: trackingIdString)
-                
             }
             .onReceive(bookShelfVM.$hasFetchedFav) { hasFetched in
                 if hasFetched {
@@ -168,50 +173,47 @@ struct BookShelfView: View {
                 }
             }
         }
-        
     }
-}
-
-
-#Preview {
-    BookShelfView(isTabBarShowing: .constant(true))
 }
 
 struct FavBookCell: View {
     let book: Book
     @Binding var isTabBarShowing: Bool
     
-    
     var body: some View {
         NavigationLink(destination: DetailBookView(book: book, isTabBarShowing: $isTabBarShowing)) {
-            VStack(alignment: .leading) {
-                AsyncImage(url: URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 160)
-                        .clipped()
-                        .shadow(radius: 10, x: -5, y: 5)
-                } placeholder: {
-                    ProgressView()
+            HStack {
+                VStack(alignment: .leading) {
+                    AsyncImage(url: URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 160)
+                            .clipped()
+                            .shadow(radius: 10, x: -5, y: 5)
+                    } placeholder: {
+                        ProgressView()
+                    }
+                    
+                    Text(book.title)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .lineLimit(2)
+                        .foregroundStyle(.black)
+                    
+                    Text("by \(book.authors.first?.name ?? "Unknown Author")")
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .lineLimit(2)
+                        .foregroundStyle(.gray)
                 }
-                
-                Text(book.title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
-                    .foregroundStyle(.black)
-                
-                Text("by \(book.authors.first?.name ?? "Unknown Author")")
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
-                    .foregroundStyle(.gray)
+                .frame(width: 140)
+                .padding()
             }
-            .frame(width: 140)
-            .padding()
+            
+            Divider()
+                .padding()
         }
-        
     }
 }
 
@@ -223,48 +225,60 @@ struct TrackingBookCell: View {
     
     var body: some View {
         NavigationLink(destination: DetailBookView(book: trackBook, isTabBarShowing: $isTabBarShowing)) {
-            HStack{
-                AsyncImage(url: URL(string: trackBook.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
-                    image
+            ZStack(alignment: .bottomTrailing) {
+                if trackingBook.progress == 100 {
+                    Image(systemName: "checkmark")
                         .resizable()
-                        .scaledToFit()
-                        .frame(width: 90, height: 130)
-                        .clipped()
-                        .shadow(radius: 10, x: 0, y: 10)
-                } placeholder: {
-                    ProgressView()
+                        .frame(width: 20, height: 20)
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundStyle(.green)
                 }
-                
-                VStack(alignment: .leading){
-                    Text(trackBook.title)
-                        .font(.system(size: 17))
-                        .fontWeight(.semibold)
-                        .lineLimit(2)
-                        .foregroundStyle(.black)
-                    Text("by \(trackBook.authors.first?.name ?? "Unknown Author")")
-                        .font(.footnote)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.gray)
-                    
-                    VStack(alignment: .trailing){
-                        ProgressView(value: trackingBook.progress, total: 100)
-                        Text(String(format: "%.1f of 100%%", trackingBook.progress))
-                            .font(.system(size: 10))
-                            .font(.footnote)
-                            .foregroundStyle(.gray)
-                            .fontWeight(.semibold)
+                HStack {
+                    AsyncImage(url: URL(string: trackBook.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")) { image in
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 90, height: 130)
+                            .clipped()
+                            .shadow(radius: 10, x: 0, y: 10)
+                    } placeholder: {
+                        ProgressView()
                     }
                     
+                    VStack(alignment: .leading) {
+                        Text(trackBook.title)
+                            .font(.system(size: 17))
+                            .fontWeight(.semibold)
+                            .lineLimit(2)
+                            .foregroundStyle(.black)
+                        Text("by \(trackBook.authors.first?.name ?? "Unknown Author")")
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.gray)
+                        
+                        VStack(alignment: .trailing) {
+                            ProgressView(value: trackingBook.progress, total: 100)
+                                .progressViewStyle(LinearProgressViewStyle(tint: trackingBook.progress == 100 ? .green : .blue))
+                            Text(String(format: "%.1f of 100%%", trackingBook.progress))
+                                .font(.system(size: 10))
+                                .font(.footnote)
+                                .foregroundStyle(.gray)
+                                .fontWeight(.semibold)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.top, 12)
+                    .padding(.leading, 6)
                     
                     Spacer()
                 }
                 .padding(.top, 12)
-                .padding(.leading, 6)
-                
-                Spacer()
             }
-            .padding(.top, 12)
-            
         }
     }
+}
+
+#Preview {
+    BookShelfView(isTabBarShowing: .constant(true))
 }

@@ -4,70 +4,98 @@
 //
 //  Created by Trịnh Kiết Tường on 14/10/24.
 //
+
 import Foundation
 
 class BookListViewModel: ObservableObject {
     static let shared = BookListViewModel()
 
     @Published var books: [Book] = []
+    @Published var isLoading = false
+    @Published var hasMorePages = true
+    
+    private var currentPage = 1
+    private let pageSize = 32
+    private var nextPageURL: String?
     
     var onBookAdded: (() -> Void)?
     
-    func fetchBooks() {
-        if books.isEmpty {
-            guard let url = URL(string: "https://gutendex.com/books/") else {
-                print("Invalid URL")
-                return
-            }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            request.timeoutInterval = 100
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Error fetching books: \(error.localizedDescription)")
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse,
-                      (200...299).contains(httpResponse.statusCode) else {
-                    print("Server error: \(response!)")
-                    return
-                }
-                
-                guard let data = data else {
-                    print("Invalid data")
-                    return
-                }
-                
-                do {
-                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let results = json["results"] as? [[String: Any]] {
-                        
-                        for bookDict in results {
-                            if let book = self.createBook(from: bookDict) {
-                                DispatchQueue.main.async {
-                                    self.books.append(book)
-                                }
-                                
-                            }
-                        }
-                        self.onBookAdded?()
-                        
-                        
-                    } else {
-                        print("Invalid JSON structure")
-                    }
-                } catch {
-                    print("Error parsing JSON: \(error.localizedDescription)")
-                }
-            }.resume()
-        } else {
+    func fetchBooks(isRefreshing: Bool = false) {
+        if isRefreshing {
+            resetPagination()
+        }
+        
+        guard !isLoading && hasMorePages else { return }
+        
+        isLoading = true
+        
+        let urlString = nextPageURL ?? "https://gutendex.com/books/?page=\(currentPage)"
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL")
+            isLoading = false
             return
         }
         
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 100
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            defer { DispatchQueue.main.async { self.isLoading = false } }
+            
+            if let error = error {
+                print("Error fetching books: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                print("Server error: \(String(describing: response))")
+                return
+            }
+            
+            guard let data = data else {
+                print("Invalid data")
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    DispatchQueue.main.async {
+                        self.nextPageURL = json["next"] as? String
+                        self.hasMorePages = self.nextPageURL != nil
+                    }
+                    
+                    if let results = json["results"] as? [[String: Any]] {
+                        let newBooks = results.compactMap { self.createBook(from: $0) }
+                        DispatchQueue.main.async {
+                            if isRefreshing {
+                                self.books = newBooks
+                            } else {
+                                self.books.append(contentsOf: newBooks)
+                            }
+                            self.currentPage += 1
+                            self.onBookAdded?()
+                        }
+                    }
+                } else {
+                    print("Invalid JSON structure")
+                }
+            } catch {
+                print("Error parsing JSON: \(error.localizedDescription)")
+            }
+        }.resume()
     }
+    
+    func resetPagination() {
+        books = []
+        currentPage = 1
+        nextPageURL = nil
+        hasMorePages = true
+    }
+    
     
     private func createBook(from dictionary: [String: Any]) -> Book? {
         guard let id = dictionary["id"] as? Int,

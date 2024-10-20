@@ -22,9 +22,8 @@ struct DetailBookView: View {
     @State private var isRemoved: Bool = false
     @State private var isTrackAlert: Bool = false
     @State private var isRemoveTrackAlert: Bool = false
-    
-    
     @State private var isTracking: Bool = false
+    
     
     var body: some View {
         let url = URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")
@@ -66,6 +65,7 @@ struct DetailBookView: View {
                                 .font(.headline)
                                 .padding(.top, 8)
                                 .padding(.leading, 10)
+                            
                             ForEach(book.subjects, id: \.self) { subject in
                                 Text("✼ \(subject)")
                                     .font(.subheadline)
@@ -78,17 +78,54 @@ struct DetailBookView: View {
                     
                     HStack {
                         NavigationLink(destination: BookReadingView(id: book.id, book: book, isTabBarShowing: $isTabBarShowing)) {
-                            HStack {
-                                Image(systemName: "book.fill")
-                                    .foregroundStyle(.white)
-                                Text("Start reading")
-                                    .foregroundStyle(.white)
-                                    .font(.subheadline)
+                            if let trackBook = trackingBooks.first(where: { $0.bookId == book.id }) {
+                                let progress: Double = trackBook.progress
+                                let formattedProgress = String(format: "%.0f%", progress)
+                                
+                                if progress == 100{
+                                    HStack {
+                                        Image(systemName: "book.fill")
+                                            .foregroundStyle(.white)
+                                        Text("Finished")
+                                            .foregroundStyle(.white)
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                    }
+                                    .frame(width: 160, height: 50)
+                                    .background(Color.buttonReadingColor3)
+                                    .cornerRadius(20)
+                                    .padding(.top, 20)
+                                } else {
+                                    HStack {
+                                        Image(systemName: "book.fill")
+                                            .foregroundStyle(.white)
+                                        Text("Reading \(formattedProgress)%")
+                                            .foregroundStyle(.white)
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                    }
+                                    .frame(width: 160, height: 50)
+                                    .background(Color.buttonReadingColor2)
+                                    .cornerRadius(20)
+                                    .padding(.top, 20)
+                                }
+                                
+                            } else {
+                                HStack{
+                                    Image(systemName: "book.fill")
+                                        .foregroundStyle(.white)
+                                    Text("Start reading")
+                                        .foregroundStyle(.white)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(width: 160, height: 50)
+                                .background(.buttonReading)
+                                .cornerRadius(20)
+                                .padding(.top, 20)
                             }
-                            .frame(width: 160, height: 50)
-                            .background(Color.blue)
-                            .cornerRadius(20)
-                            .padding(.top, 20)
+                            
+                            
                         }
                         
                         Button(action: {
@@ -124,16 +161,20 @@ struct DetailBookView: View {
                                     Text("Start tracking")
                                         .foregroundStyle(.white)
                                         .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                    
                                 } else {
                                     Image(systemName: "eye.slash.fill")
                                         .foregroundStyle(.white)
                                     Text("Stop tracking")
                                         .foregroundStyle(.white)
                                         .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                    
                                 }
                             }
                             .frame(width: 160, height: 50)
-                            .background(isTracking ? Color.red : Color.green)
+                            .background(isTracking ? Color.buttonTrackingColor2 : Color.buttonTracking)
                             .cornerRadius(20)
                             .padding(.top, 20)
                         }
@@ -180,7 +221,7 @@ struct DetailBookView: View {
                 let trackingBookIds = trackingBooks.map { String($0.bookId) }
                 isTracking = trackingBookIds.contains(String(book.id))
             }
-           
+            
             
         }
         .edgesIgnoringSafeArea(.bottom)
