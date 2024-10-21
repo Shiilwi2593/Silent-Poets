@@ -10,6 +10,7 @@ struct SearchView: View {
     @Binding var isTabBarShowing: Bool
     @State var searchKeyword: String = ""
     @State var isSearchSubmitted: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
     
     @StateObject var searchVM = SearchViewModel.shared
     
@@ -77,6 +78,7 @@ struct SearchView: View {
 struct SearchBar: View {
     @Binding var searchKeyword: String
     @Binding var isSearchSubmitted: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     
     var body: some View {

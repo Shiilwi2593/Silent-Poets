@@ -10,6 +10,7 @@ import SwiftData
 struct DetailBookView: View {
     
     @Environment(\.modelContext) private var context
+    @Environment(\.colorScheme) private var colorScheme
     @Query var favBooks: [FavorBook]
     @Query var trackingBooks: [TrackingBook]
     
@@ -29,7 +30,11 @@ struct DetailBookView: View {
         let url = URL(string: book.formats.imageJPEG ?? "https://static.wikia.nocookie.net/gijoe/images/b/bf/Default_book_cover.jpg/revision/latest?cb=20240508080922")
         
         ZStack {
-            Color.white
+//            if colorScheme == .dark{
+//                Color.black
+//            } else {
+//                Color.white
+//            }
             ScrollView {
                 VStack {
                     

@@ -12,6 +12,7 @@ struct BookShelfView: View {
     @Binding var isTabBarShowing: Bool
     
     @StateObject private var bookShelfVM = BookShelfViewModel.shared
+    @Environment(\.colorScheme) private var colorScheme
     
     //SwiftData
     @Environment(\.modelContext) private var context
@@ -179,6 +180,7 @@ struct BookShelfView: View {
 struct FavBookCell: View {
     let book: Book
     @Binding var isTabBarShowing: Bool
+    @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
         NavigationLink(destination: DetailBookView(book: book, isTabBarShowing: $isTabBarShowing)) {
@@ -199,7 +201,7 @@ struct FavBookCell: View {
                         .font(.subheadline)
                         .fontWeight(.semibold)
                         .lineLimit(2)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(colorScheme == .dark ? .white : .black)
                     
                     Text("by \(book.authors.first?.name ?? "Unknown Author")")
                         .font(.footnote)
@@ -221,6 +223,7 @@ struct TrackingBookCell: View {
     let trackBook: Book
     let trackingBook: TrackingBook
     @Binding var isTabBarShowing: Bool
+    @Environment(\.colorScheme) private var colorScheme
     let bookListVM = BookListViewModel.shared
     
     var body: some View {
@@ -250,7 +253,7 @@ struct TrackingBookCell: View {
                             .font(.system(size: 17))
                             .fontWeight(.semibold)
                             .lineLimit(2)
-                            .foregroundStyle(.black)
+                            .foregroundStyle(colorScheme == .dark ? .white : .black)
                         Text("by \(trackBook.authors.first?.name ?? "Unknown Author")")
                             .font(.footnote)
                             .fontWeight(.semibold)

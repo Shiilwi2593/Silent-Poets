@@ -10,6 +10,7 @@ import SwiftUI
 struct TabBarView: View {
     @Binding var selectionIndex: Int
     @Binding var isTabBarShowing: Bool
+    @Environment(\.colorScheme) private var colorScheme
     
     let tabbarImage: [String] = ["tray.full.fill", "magnifyingglass", "books.vertical.fill"]
     let tabbarTitle: [String] = ["Books", "Search", "Bookshelf"]
@@ -26,13 +27,12 @@ struct TabBarView: View {
                         Image(systemName: tabbarImage[index])
                             .font(.system(size: 20))
                             .frame(width: 20,height: 20)
-                            .foregroundColor(selectionIndex == index ? Color.black : .black.opacity(0.7))
+                            .foregroundStyle(selectionIndex == index ? (colorScheme == .dark ? .white : .black) : Color.primary.opacity(0.7))
                             .scaledToFit()
                         Text (tabbarTitle[index])
                             .padding(.top,2)
                             .font(.system(size: 12))
-                            .foregroundColor(selectionIndex == index ? Color.black : .black.opacity(0.7))
-                    }
+                        .foregroundStyle(selectionIndex == index ? (colorScheme == .dark ? .white : .black) : Color.primary.opacity(0.7))                    }
                     Spacer()
                 }
                 
