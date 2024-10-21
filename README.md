@@ -14,5 +14,3 @@
 - Data Persistence: SwiftData
 - API: Gutendex API (for fetching book information from the public domain)
   
-## 📸 Screenshots
-LinkDrive: [YourScreenshotsLinkHere]
