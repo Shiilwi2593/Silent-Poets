@@ -106,7 +106,7 @@ class BookReadingViewModel: ObservableObject {
 struct CustomWebView: UIViewRepresentable {
     let url: URL
     @ObservedObject var viewModel: BookReadingViewModel
-    @Binding var isTracking: Bool // Keep it as @Binding
+    @Binding var isTracking: Bool
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -122,7 +122,7 @@ struct CustomWebView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        // No need to update isTracking here, it's accessed directly in the coordinator
+        
     }
     
     func makeCoordinator() -> Coordinator {
@@ -137,7 +137,7 @@ struct CustomWebView: UIViewRepresentable {
         }
         
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard parent.isTracking else { return }  // Use parent.isTracking
+            guard parent.isTracking else { return }
             
             switch message.name {
             case "scrollHandler":
@@ -241,154 +241,6 @@ struct CustomWebView: UIViewRepresentable {
         }
     }
 }
-
-//
-//
-//struct CustomWebView: UIViewRepresentable {
-//    let url: URL
-//    @ObservedObject var viewModel: BookReadingViewModel
-//    var isTracking: Bool
-//
-//    func makeUIView(context: Context) -> WKWebView {
-//        let config = WKWebViewConfiguration()
-//        config.userContentController.add(context.coordinator, name: "scrollHandler")
-//        config.userContentController.add(context.coordinator, name: "debugHandler")
-//        config.userContentController.add(context.coordinator, name: "errorHandler")
-//
-//        let webView = WKWebView(frame: .zero, configuration: config)
-//        webView.navigationDelegate = context.coordinator
-//        webView.load(URLRequest(url: url))
-//
-//        return webView
-//    }
-//
-//    func updateUIView(_ uiView: WKWebView, context: Context) {}
-//
-//    func makeCoordinator() -> Coordinator {
-//        Coordinator(self, isTracking: isTracking)
-//    }
-//
-//    class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-//        var parent: CustomWebView
-//        var isTracking: Bool
-//
-//        init(_ parent: CustomWebView, isTracking: Bool) {
-//            self.parent = parent
-//            self.isTracking = isTracking
-//        }
-//
-//        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-//            guard isTracking else { return }  // Only handle progress if tracking
-//
-//            switch message.name {
-//            case "scrollHandler":
-//                if let progress = message.body as? Double {
-//                    print("Progress received from web view: \(progress)")
-//                    parent.viewModel.updateProgress(progress)
-//                }
-//            case "debugHandler":
-//                if let message = message.body as? String {
-//                    print("Debug message from WebView: \(message)")
-//                    parent.viewModel.debugMessage = message
-//                }
-//            case "errorHandler":
-//                if let error = message.body as? String {
-//                    print("Error from WebView: \(error)")
-//                    parent.viewModel.debugMessage = "WebView Error: \(error)"
-//                }
-//            default:
-//                break
-//            }
-//        }
-//
-//        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-//            parent.viewModel.debugMessage = "Page loaded"
-//            print("Page loaded successfully")
-//
-//            if isTracking {
-//                let initialProgress = parent.viewModel.progress
-//                let script = """
-//                   (function() {
-//                       try {
-//                           console.log("Initializing progress tracking...");
-//                           var lastProgress = \(initialProgress);  // Initialize with previously saved progress
-//
-//                           function updateProgress() {
-//                               let scrollPosition = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-//                               let totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-//
-//                               if (totalHeight <= 0) {
-//                                   console.error("Total height is zero or negative.");
-//                                   window.webkit.messageHandlers.errorHandler.postMessage("Total height is zero or negative.");
-//                                   return; // Prevent division by zero
-//                               }
-//
-//                               let currentProgress = Math.min(Math.max((scrollPosition / totalHeight) * 100, 0), 100);
-//                               window.webkit.messageHandlers.scrollHandler.postMessage(currentProgress);
-//                               lastProgress = currentProgress;
-//                               window.webkit.messageHandlers.debugHandler.postMessage("Progress updated: " + currentProgress);
-//                           }
-//
-//                           function setInitialScrollPosition() {
-//                               console.log("Setting initial scroll position...");
-//                               let totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-//
-//                               if (totalHeight <= 0) {
-//                                   console.error("Cannot set initial scroll position: Total height is zero or negative.");
-//                                   window.webkit.messageHandlers.errorHandler.postMessage("Cannot set initial scroll position: Total height is zero or negative.");
-//                                   return;
-//                               }
-//
-//                               let initialScrollPosition = (lastProgress / 100) * totalHeight;
-//                               window.scrollTo(0, initialScrollPosition);
-//                               console.log("Set initial position to: ", initialScrollPosition);
-//                               window.webkit.messageHandlers.debugHandler.postMessage("Set initial position to: " + initialScrollPosition);
-//                               updateProgress();
-//                           }
-//
-//                           function debounce(func, wait) {
-//                               let timeout;
-//                               return function() {
-//                                   clearTimeout(timeout);
-//                                   timeout = setTimeout(func, wait);
-//                               };
-//                           }
-//
-//                           window.addEventListener('scroll', debounce(updateProgress, 100));
-//
-//                           // Use setTimeout to ensure the content is fully loaded before setting the scroll position
-//                           setTimeout(setInitialScrollPosition, 100);
-//
-//                           console.log("Progress script initialized.");
-//                           window.webkit.messageHandlers.debugHandler.postMessage("Progress script initialized.");
-//
-//                       } catch (error) {
-//                           console.error("Script error: ", error);
-//                           window.webkit.messageHandlers.errorHandler.postMessage(error.toString());
-//                       }
-//                   })();
-//                """
-//
-//                webView.evaluateJavaScript(script) { (result, error) in
-//                    if let error = error {
-//                        print("Error injecting script: \(error.localizedDescription)")
-//                        self.parent.viewModel.debugMessage = "Script injection failed: \(error.localizedDescription)"
-//                    } else {
-//                        print("Script injected successfully")
-//                        self.parent.viewModel.debugMessage = "Script injected successfully"
-//                    }
-//                }
-//            } else {
-//                print("Skipping progress calculation because the book is not being tracked.")
-//            }
-//        }
-//
-//        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-//            parent.viewModel.debugMessage = "Page load failed: \(error.localizedDescription)"
-//            print("Page load failed: \(error.localizedDescription)")
-//        }
-//    }
-//}
 
 
 //#Preview {

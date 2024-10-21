@@ -22,14 +22,6 @@ struct SearchView: View {
                         isSearchSubmitted = true
                     }
              
-                
-                Text("Recent Searches")
-                    .font(.subheadline)
-                    .foregroundStyle(.gray)
-                    .padding()
-                Spacer()
-                    .frame(height: 80)
-                
                 Text("Search Results")
                     .font(.subheadline)
                     .foregroundStyle(.gray)

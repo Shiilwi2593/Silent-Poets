@@ -103,9 +103,9 @@ struct BookListCell: View {
                             Spacer()
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading) // Đảm bảo rằng VStack căn lề trái
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding() // Padding cho HStack để đảm bảo không quá sát biên
+                .padding() 
 
                 Divider()
                     .padding([.leading, .trailing], 12)
