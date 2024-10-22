@@ -247,7 +247,7 @@ struct DetailBookView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 20, height: 20)
-                        .foregroundStyle(isFavorited ? .yellow : .black.opacity(0.6))
+                        .foregroundStyle(isFavorited ? .yellow : (colorScheme == .dark ? .white : .black.opacity(0.6)))
                         .scaleEffect(isFavorited ? 1.3 : 1.0)
                 }
             }
