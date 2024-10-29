@@ -13,4 +13,5 @@
 - Frontend: Swift, SwiftUI
 - Data Persistence: SwiftData
 - API: Gutendex API (for fetching book information from the public domain)
-  
+
+## 📀 Link Demo: https://youtu.be/t3QUgG2Egrc
